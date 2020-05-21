@@ -95,6 +95,8 @@ private:
      int w;
      int mode=CIRCULAR;
      bool k=true;
+     bool file_is_open=false;
+
 
 };
 

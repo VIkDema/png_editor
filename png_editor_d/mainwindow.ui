@@ -44,9 +44,6 @@
       <property name="text">
        <string/>
       </property>
-      <property name="pixmap">
-       <pixmap>../../../CLionProjects/png-editor/resize.png</pixmap>
-      </property>
       <property name="scaledContents">
        <bool>false</bool>
       </property>
