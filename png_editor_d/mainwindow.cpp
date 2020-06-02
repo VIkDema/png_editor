@@ -5,6 +5,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
+
 {
 
     this->setWindowFlags(Qt::FramelessWindowHint );
@@ -46,53 +47,52 @@ void MainWindow::on_actionOpen_triggered()
 {
     path_true_file = QFileDialog::getOpenFileName(0, "Open Dialog", "", "*.png");
     if(path_true_file!=""){
-    statusBar()->showMessage("Файл открыт");
-    img_before_edit.load(path_true_file);
-    w=ui->image->width();
-    h=ui->image->height();
-    x_max=img_before_edit.width();
-    y_max=img_before_edit.height();
-    ui->image->setPixmap(img_before_edit.scaled(w,h,Qt::KeepAspectRatio));
+        statusBar()->showMessage("Файл открыт");
+        img_before_edit.load(path_true_file);
+        w=ui->image->width();
+        h=ui->image->height();
+        x_max=img_before_edit.width();
+        y_max=img_before_edit.height();
+        ui->image->setPixmap(img_before_edit.scaled(w,h,Qt::KeepAspectRatio));
 
 
-    file_is_open=true;
-     read_png_file((char*)path_true_file.toLocal8Bit().data(),&image_png);
-     write_png_file((char*)absolute_path.toLocal8Bit().data(),&image_png);
+        file_is_open=true;
+        read_png_file((char*)path_true_file.toLocal8Bit().data(),&image_png);
+        write_png_file((char*)absolute_path.toLocal8Bit().data(),&image_png);
 
     }else{
         statusBar()->showMessage("Ничего не выбрано");
     }
+}
 
 
+void MainWindow::deleteduble(int max,int for_label){
+    QPoint cur = ui->image->mapFromGlobal(QCursor::pos());
 
-
-
+    if(y_max>floor((float)((cur.y()*max)/(for_label))) && x_max>floor((float)((cur.x()*max)/(for_label)))){
+        y_on_img=floor((float)((cur.y()*max)/(for_label)));
+        x_on_img=floor((float)((cur.x()*max)/(for_label)));
+        statusBar()->showMessage("Выбраны x="+QString::number(x_on_img)+" y="+QString::number(y_on_img)+"Изображение размером ("+QString::number(x_max)+","+QString::number(y_max)+")");
+    }else{
+        statusBar()->showMessage("Вышли за пределы");
+    }
 
 }
 
 
 void MainWindow::get_cord(){
-    QPoint cur = ui->image->mapFromGlobal(QCursor::pos());
 
     int y_for_label=h;
     int x_for_label=w;
 
     if((float)y_max<(float)((x_max*y_for_label)/x_for_label)){
-        if(y_max>floor((float)((cur.y()*x_max)/(x_for_label))) && x_max>floor((float)((cur.x()*x_max)/(x_for_label)))){
-        y_on_img=floor((float)((cur.y()*x_max)/(x_for_label)));
-        x_on_img=floor((float)((cur.x()*x_max)/(x_for_label)));
-        statusBar()->showMessage("Выбраны x="+QString::number(x_on_img)+" y="+QString::number(y_on_img)+"Изображение размером ("+QString::number(x_max)+","+QString::number(y_max)+")");
-        }else{
-            statusBar()->showMessage("Вышли за пределы");
-        }
+        deleteduble(x_max,x_for_label);
+
+
     }else{
-        if(y_max>floor((float)((cur.y()*y_max)/(y_for_label))) && x_max>floor((float)((cur.x()*y_max)/(y_for_label)))){
-        y_on_img=floor((float)((cur.y()*y_max)/(y_for_label)));
-        x_on_img=floor((float)((cur.x()*y_max)/(y_for_label)));
-        statusBar()->showMessage("Выбраны x="+QString::number(x_on_img)+" y="+QString::number(y_on_img)+"Изображение размером ("+QString::number(x_max)+","+QString::number(y_max)+")");
-        }else{
-            statusBar()->showMessage("Вышли за пределы");
-        }
+        deleteduble(y_max,y_for_label);
+
+
     }
 }
 
@@ -120,27 +120,24 @@ void MainWindow::on_image_clicked()
 
     if(ui->but_for_fun2->isChecked()){
         if(k){
-        MainWindow::on_chouse_cord_2_clicked();
-        statusBar()->showMessage("Выбор второй координаты");
-        k=false;
+            MainWindow::on_chouse_cord_2_clicked();
+            statusBar()->showMessage("Выбор второй координаты");
+            k=false;
 
         }else{
-        MainWindow::on_chouse_cord_3_clicked();
-        MainWindow::on_Transposition_2_clicked();
-        k=true;
+            MainWindow::on_chouse_cord_3_clicked();
+            MainWindow::on_Transposition_2_clicked();
+            k=true;
         }
 
     }
-
-
-
 }
 
 void MainWindow::on_chouse_cord_1_clicked()
 {
-     x_for_fun1=x_on_img;
-     y_for_fun1=y_on_img;
-     ui->x_up_and_y_up1->setText("Выбраны x="+QString::number(x_for_fun1)+"y="+QString::number(y_for_fun1));
+    x_for_fun1=x_on_img;
+    y_for_fun1=y_on_img;
+    ui->x_up_and_y_up1->setText("Выбраны x="+QString::number(x_for_fun1)+"y="+QString::number(y_for_fun1));
 }
 
 void MainWindow::on_chouse_cord_2_clicked()
@@ -185,7 +182,7 @@ void MainWindow::on_checkBox_clicked()
 
 void MainWindow::on_color_for_line_clicked()
 {
-   color_for_line= QColorDialog::getColor();
+    color_for_line= QColorDialog::getColor();
 }
 
 void MainWindow::on_color_for_fill_clicked()
@@ -197,7 +194,7 @@ void MainWindow::on_push_create_a_square_clicked()
 {
     if(!file_is_open){
         QMessageBox::warning(this,"Ошибка","Файл не открыт");
-         return;
+        return;
 
     }
     read_png_file((char*)absolute_path.toLocal8Bit().data(),&image_png);
@@ -208,7 +205,6 @@ void MainWindow::on_push_create_a_square_clicked()
     w=ui->image->width();
     h=ui->image->height();
     ui->image->setPixmap(img_before_edit.scaled(w,h,Qt::KeepAspectRatio));
-
 }
 
 
@@ -217,14 +213,13 @@ void MainWindow::on_Transposition_2_clicked()
 {
     if(!file_is_open){
         QMessageBox::warning(this,"Ошибка","Файл не открыт");
-         return;
+        return;
     }
     if(ui->Diagonal->isChecked()){
         mode=DIAGONAL;
     }else if(ui->Circular->isChecked()){
         mode=CIRCULAR;
     }
-
     read_png_file((char*)absolute_path.toLocal8Bit().data(),&image_png);
     swap_png(&image_png,xs_for_fun2,ys_for_fun2,xe_for_fun2,ye_for_fun2,mode);
     write_png_file((char*)absolute_path.toLocal8Bit().data(),&image_png);
@@ -233,7 +228,6 @@ void MainWindow::on_Transposition_2_clicked()
     w=ui->image->width();
     h=ui->image->height();
     ui->image->setPixmap(img_before_edit.scaled(w,h,Qt::KeepAspectRatio));
-
 
 }
 
@@ -247,7 +241,7 @@ void MainWindow::on_color_swap_clicked()
 {
     if(!file_is_open){
         QMessageBox::warning(this,"Ошибка","Файл не открыт");
-         return;
+        return;
     }
     statusBar()->showMessage("Ожидайте");
     read_png_file((char*)absolute_path.toLocal8Bit().data(),&image_png);
@@ -271,8 +265,8 @@ void MainWindow::on_actionSave_as_triggered()
     if(path_to_save==""){
         //path_to_save= QFileDialog::getOpenFileName(0, "Open Dialog", "", "*.png");
         QUrl path = QFileDialog::getSaveFileUrl(this,
-                 tr("png"),
-                 tr("png(*.png);;All Files (*.png)"),"(*.png)");
+                                                tr("png"),
+                                                tr("png(*.png);;All Files (*.png)"),"(*.png)");
         path_to_save=path.path();
 
         read_png_file((char*)absolute_path.toLocal8Bit().data(),&image_png);

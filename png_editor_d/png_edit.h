@@ -16,7 +16,7 @@
 #define RED 1
 #define YELLOW 2
 #define PINK 3
-#define BLUE 4
+#define BLUE 4 
 #define ORANGE 5
 #define BLACK 6
 #define WHITE 7

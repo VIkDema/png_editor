@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.5.2, 2020-05-21T11:49:32. -->
+<!-- Written by QtCreator 4.5.2, 2020-06-02T23:21:25. --> 
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -304,7 +304,7 @@
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">png_editor</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">png_editor2</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/viktor/Рабочий стол/png_editor_github/dwdw/png_editor/png_editor_d/png_editor.pro</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/viktor/Рабочий стол/prg/pr-2020-9382/Demin_Victor_cw/src/png_editor.pro</value>
     <value type="bool" key="QmakeProjectManager.QmakeRunConfiguration.UseLibrarySearchPath">true</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.CommandLineArguments"></value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.ProFile">png_editor.pro</value>
