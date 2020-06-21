@@ -16,7 +16,7 @@
 #define RED 1
 #define YELLOW 2
 #define PINK 3
-#define BLUE 4 
+#define BLUE 4
 #define ORANGE 5
 #define BLACK 6
 #define WHITE 7
@@ -39,5 +39,7 @@ void write_png_file(char *file_name, struct Png *image);
 void swap_png(struct Png *image, int x_s, int y_s, int x_e, int y_e, int mode);
 void make_square(struct Png *image, int xc, int yc, int side_size, int line_thickness, QColor color_for_line, bool is_filled, QColor fill_color);
 void find_color_and_replacing(struct Png *image, QColor color_for_swap);
+void negativ(struct Png *image);
+void chbe(struct Png *image, double brightness);
 
 #endif // PNG_EDIT_H

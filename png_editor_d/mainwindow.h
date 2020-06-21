@@ -8,9 +8,9 @@
 #include <QLabel>
 #include <math.h>
 #include "png_edit.h"
-#include <QFile> 
+#include <QFile>
 #include <QMouseEvent>
-#include <QDir> 
+#include <QDir>
 #include <QColorDialog>
 
 namespace Ui {
@@ -65,8 +65,10 @@ private slots:
 
     void on_actionSave_as_triggered();
 
-    void deleteduble(int max,int for_label);
 
+    void on_pushButton_clicked();
+
+    void on_push_chbe_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -93,11 +95,12 @@ private:
     int line_thicknes=0;
     struct Png image_png;
     int is_filled=0;
-    int h;
-    int w;
-    int mode=CIRCULAR;
-    bool k=true;
-    bool file_is_open=false;
+     int h;
+     int w;
+     int mode=CIRCULAR;
+     bool k=true;
+     bool file_is_open=false;
+     double brightness=0;
 
 
 };

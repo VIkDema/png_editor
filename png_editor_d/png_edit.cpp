@@ -1,3 +1,4 @@
+
 #include "mainwindow.h"
 #include <png.h>
 #include <stdlib.h>
@@ -100,7 +101,7 @@ void write_png_file(char *file_name, struct Png *image) {
 
     image->info_ptr = png_create_info_struct(image->png_ptr);
     if (!image->info_ptr) {
-        QMessageBox::warning(0,"Ошибка","png_create_info_struct failed");
+       QMessageBox::warning(0,"Ошибка","png_create_info_struct failed");
         return;
         // Some error handling: png_create_info_struct failed
     }
@@ -140,7 +141,7 @@ void write_png_file(char *file_name, struct Png *image) {
 
     /* end write */
     if (setjmp(png_jmpbuf(image->png_ptr))) {
-        QMessageBox::warning(0,"Ошибка","error during end of write");
+       QMessageBox::warning(0,"Ошибка","error during end of write");
         // Some error handling: error during end of write
         return;
     }
@@ -166,25 +167,6 @@ png_byte *get_color(QColor color) {
 
     return ptr;
 }
-
-
-void paint(struct Png *image,int size,int y_start,int y_end,int x_start,int x_end, QColor color,bool tr=false,int x_for_tr=0){
-    for (int y = y_start; y < y_end; ++y) {
-        png_byte *row = image->row_pointers[y];
-        for (int x = x_start; x < x_end; x++) {
-            png_byte *ptr = &(row[x * size]);
-            memcpy(ptr, get_color(color), sizeof(png_byte) * 3);
-            if(tr){
-                ptr = &(row[(x + x_for_tr) * 4]);
-                memcpy(ptr, get_color(color), sizeof(png_byte) * 3);
-            }
-            if (size == 4) {
-                ptr[3] = 255;
-            }
-        }
-    }
-}
-
 
 void make_square(struct Png *image, int xc, int yc, int side_size, int line_thickness, QColor color_for_line, bool is_filled,
                  QColor fill_color) {
@@ -213,45 +195,69 @@ void make_square(struct Png *image, int xc, int yc, int side_size, int line_thic
     }
 
 
+    //заливка
     if (is_filled) {
-        paint(image,size,yc,yc+side_size_y,xc,xc+side_size_x,fill_color);
+        for (int y = yc; y < yc + side_size_y; ++y) {
+            png_byte *row = image->row_pointers[y];
+            for (int x = xc; x < xc + side_size_x; x++) {
+                png_byte *ptr = &(row[x * size]);
+                memcpy(ptr, get_color(fill_color), sizeof(png_byte) * 3);
+                if (size == 4) {
+                    ptr[3] = 255;
+                }
+            }
+        }
+
     }
 
-    paint(image,size,yc,yc+line_thickness,xc,xc+side_size_x,color_for_line);
+    //линия
+    //верхняя
+    for (int y = yc; y < yc + line_thickness; ++y) {
+        png_byte *row = image->row_pointers[y];
+        for (int x = xc; x < xc + side_size_x; x++) {
+            png_byte *ptr = &(row[x * size]);
+            memcpy(ptr, get_color(color_for_line), sizeof(png_byte) * 3);
+            if (size == 4) {
+                ptr[3] = 255;
+            }
+        }
+    }
 
-    paint(image,size,yc+line_thickness,yc+side_size_y-line_thickness,xc,xc+line_thickness,color_for_line,true,side_size_x - line_thickness);
+    for (int y = yc + line_thickness; y < yc + side_size_y - line_thickness; ++y) {
+        png_byte *row = image->row_pointers[y];
+        for (int x = xc; x < xc + line_thickness; x++) {
+            png_byte *ptr = &(row[x * size]);
+            memcpy(ptr, get_color(color_for_line), sizeof(png_byte) * 3);
+            if (size == 4) {
+                ptr[3] = 255;
+            }
+            ptr = &(row[(x + side_size_x - line_thickness) * 4]);
+            memcpy(ptr, get_color(color_for_line), sizeof(png_byte) * 3);
+            if (size == 4) {
+                ptr[3] = 255;
+            }
+        }
+    }
+    //нижняя
+    for (int y = yc + side_size_y - line_thickness; y < yc + side_size_y; ++y) {
+        png_byte *row = image->row_pointers[y];
+        for (int x = xc; x < xc + side_size_x; x++) {
+            png_byte *ptr = &(row[x * size]);
+            memcpy(ptr, get_color(color_for_line), sizeof(png_byte) * 3);
+            if (size == 4) {
+                ptr[3] = 255;
+            }
+        }
+    }
 
-    paint(image,size,yc+side_size_y-line_thickness,yc+side_size_y,xc,xc+side_size_x,color_for_line);
 
 }
+
 void swap_png_byte(png_byte *ptr1, png_byte *ptr2, int size) {
     png_byte *swap_ptr = (png_byte *) malloc(sizeof(png_byte) * size);
     memcpy(swap_ptr, ptr1, sizeof(png_byte) * size);
     memcpy(ptr1, ptr2, sizeof(png_byte) * size);
     memcpy(ptr2, swap_ptr, sizeof(png_byte) * size);
-}
-
-void swap_png_one_block1(struct Png *image,int y_start,int y_end,int x_start,int x_end,int dif,int size){
-
-    for (int y = y_start; y < y_end; ++y) {
-        png_byte *row = image->row_pointers[y];
-        for (int x = x_start; x < x_end; x++) {
-            png_byte *ptr1 = &(row[x * size]);
-            png_byte *ptr2 = &(row[(x + dif) * size]);
-            swap_png_byte(ptr1, ptr2, size);
-        }
-    }
-}
-void swap_png_one_block2(struct Png *image,int y_start,int y_end,int x_start,int x_end,int dif,int size){
-    for (int x = y_start; x < y_end; x++) {
-        for (int y = x_start; y < x_end; ++y) {
-            png_byte *row1 = image->row_pointers[y];
-            png_byte *row2 = image->row_pointers[y + dif];
-            png_byte *ptr1 = &(row1[x * size]);
-            png_byte *ptr2 = &(row2[x * size]);
-            swap_png_byte(ptr1, ptr2, size);
-        }
-    }
 }
 
 void swap_png(struct Png *image, int x_s, int y_s, int x_e, int y_e, int mode) {
@@ -283,24 +289,87 @@ void swap_png(struct Png *image, int x_s, int y_s, int x_e, int y_e, int mode) {
     int dif_x = (x_e - x_s) % 2;
     int dif_y = (y_e - y_s) % 2;
     if (mode == CIRCULAR) {
-        swap_png_one_block1(image,y_s,y_s+hight,x_s,x_s+wight,wight+dif_x,size);
-        swap_png_one_block2(image,x_s,x_s+wight,y_s,y_s+hight,hight+dif_y,size);
-        swap_png_one_block1(image,y_s + hight + dif_y,y_e + 1,x_s,x_s+wight,wight+dif_x,size);
+        //swap 1 и 2 +
+
+        for (int y = y_s; y < y_s + hight; ++y) {
+            png_byte *row = image->row_pointers[y];
+            for (int x = x_s; x < x_s + wight; x++) {
+                png_byte *ptr1 = &(row[x * size]);
+                png_byte *ptr2 = &(row[(x + wight + dif_x) * size]);
+                swap_png_byte(ptr1, ptr2, size);
+            }
+        }
+        //swap 4 и 1
+        for (int x = x_s; x < x_s + hight; x++) {
+            for (int y = y_s; y < y_s + hight; ++y) {
+                png_byte *row1 = image->row_pointers[y];
+                png_byte *row2 = image->row_pointers[y + hight + dif_y];
+                png_byte *ptr1 = &(row1[x * size]);
+                png_byte *ptr2 = &(row2[x * size]);
+                swap_png_byte(ptr1, ptr2, size);
+            }
+        }
+        /*
+        //swap 2 и 3
+        for (int x = x_s+wight+dif_x; x < x_e+1; x++) {
+            for (int y = y_s; y <y_s+hight; ++y) {
+            png_byte *row1 = image->row_pointers[y];
+            png_byte *row2 = image->row_pointers[y+hight+dif_y];
+            png_byte *ptr1 = &(row1[x * 4]);
+            png_byte *ptr2 = &(row2[x * 4]);
+            swap_png_byte(ptr1,ptr2);
+            }
+        }
+         */
+        //swap 3 и 4
+        for (int y = y_s + hight + dif_y; y < y_e + 1; ++y) {
+            png_byte *row = image->row_pointers[y];
+            for (int x = x_s; x < x_s + wight; x++) {
+                png_byte *ptr1 = &(row[x * size]);
+                png_byte *ptr2 = &(row[(x + wight + dif_x) * size]);
+                swap_png_byte(ptr1, ptr2, size);
+            }
+        }
     }
     if (mode == DIAGONAL) {
-        swap_png_one_block1(image,y_s,y_s+hight,x_s,x_s+wight,wight+dif_x,size);
-        swap_png_one_block2(image,x_s + wight + dif_x,x_e,y_s,y_s+hight,hight+dif_y,size);
-        swap_png_one_block2(image,x_s,x_s + wight,y_s,y_s+hight,hight+dif_y,size);
-        swap_png_one_block1(image,y_s,y_s+hight,x_s,x_s+wight,wight+dif_x,size);
+        for (int y = y_s; y < y_s + hight; ++y) {
+            png_byte *row = image->row_pointers[y];
+            for (int x = x_s; x < x_s + wight; x++) {
+                png_byte *ptr1 = &(row[x * size]);
+                png_byte *ptr2 = &(row[(x + wight + dif_x) * size]);
+                swap_png_byte(ptr1, ptr2, size);
+            }
+        }
+        for (int x = x_s + wight + dif_x; x < x_e + 1; x++) {
+            for (int y = y_s; y < y_s + hight; ++y) {
+                png_byte *row1 = image->row_pointers[y];
+                png_byte *row2 = image->row_pointers[y + hight + dif_y];
+                png_byte *ptr1 = &(row1[x * size]);
+                png_byte *ptr2 = &(row2[x * size]);
+                swap_png_byte(ptr1, ptr2, size);
+            }
+        }
+        for (int x = x_s; x < x_s + hight; x++) {
+            for (int y = y_s; y < y_s + hight; ++y) {
+                png_byte *row1 = image->row_pointers[y];
+                png_byte *row2 = image->row_pointers[y + hight + dif_y];
+                png_byte *ptr1 = &(row1[x * size]);
+                png_byte *ptr2 = &(row2[x * size]);
+                swap_png_byte(ptr1, ptr2, size);
+            }
+        }
+        for (int y = y_s; y < y_s + hight; ++y) {
+            png_byte *row = image->row_pointers[y];
+            for (int x = x_s; x < x_s + wight; x++) {
+                png_byte *ptr1 = &(row[x * size]);
+                png_byte *ptr2 = &(row[(x + wight + dif_x) * size]);
+                swap_png_byte(ptr1, ptr2, size);
+            }
+        }
+
     }
-}
-bool is_color(png_byte *ptr_for_search,png_byte* ptr,int accuracy){
-    if ((ptr[0] > ptr_for_search[0] - accuracy && ptr[0] < ptr_for_search[0] + accuracy) &&
-            (ptr[1] > ptr_for_search[1] - accuracy && ptr[1] < ptr_for_search[1] + accuracy) &&
-            (ptr[2] > ptr_for_search[2] - accuracy && ptr[2] < ptr_for_search[2] + accuracy)) {
-        return true;
-    }
-    return false;
+
+
 }
 
 int
@@ -309,15 +378,20 @@ search_count_of_color_in_image(struct Png *image, png_byte *ptr_for_search, int 
 
     for (int y = yt; y < image->height; ++y) {
         png_byte *row = image->row_pointers[y];
-        for (int x = 0; x < image->width; x=x+5) {
+        for (int x = 0; x < image->width; x=x+3) {
             png_byte *ptr = &(row[x * size]);
+            //if ((ptr_for_search[0] == ptr[0]) && ptr_for_search[1] == ptr[1] && ptr_for_search[2] == ptr[2]) {
             if (size == 3) {
-                if (is_color(ptr_for_search,ptr,accuracy)) {
+                if ((ptr[0] > ptr_for_search[0] - accuracy && ptr[0] < ptr_for_search[0] + accuracy) &&
+                    (ptr[1] > ptr_for_search[1] - accuracy && ptr[1] < ptr_for_search[1] + accuracy) &&
+                    (ptr[2] > ptr_for_search[2] - accuracy && ptr[2] < ptr_for_search[2] + accuracy)) {
                     count++;
                 }
             }
             if (size == 4 && ptr[3] > alpha) {
-                if (is_color(ptr_for_search,ptr,accuracy)) {
+                if ((ptr[0] > ptr_for_search[0] - accuracy && ptr[0] < ptr_for_search[0] + accuracy) &&
+                    (ptr[1] > ptr_for_search[1] - accuracy && ptr[1] < ptr_for_search[1] + accuracy) &&
+                    (ptr[2] > ptr_for_search[2] - accuracy && ptr[2] < ptr_for_search[2] + accuracy)) {
                     count++;
                 }
             }
@@ -329,7 +403,7 @@ search_count_of_color_in_image(struct Png *image, png_byte *ptr_for_search, int 
 void find_color_and_replacing(struct Png *image, QColor color_for_swap) {
     int size = 0;
     int accuracy = 20;
-    int alpha = 200;
+    int alpha = 250;
     if (png_get_color_type(image->png_ptr, image->info_ptr) == PNG_COLOR_TYPE_RGB) {
         size = 3;
     }
@@ -344,7 +418,7 @@ void find_color_and_replacing(struct Png *image, QColor color_for_swap) {
 
     for (int y = 0; y < image->height; ++y) {
         png_byte *row = image->row_pointers[y];
-        for (int x = 0; x < image->width; x=x+5) {
+        for (int x = 0; x < image->width; x=x+3) {
             png_byte *ptr = &(row[x * size]);
 
             if (x == 0 && y == 0) {
@@ -356,7 +430,9 @@ void find_color_and_replacing(struct Png *image, QColor color_for_swap) {
                 }
             }
             if (size == 3) {
-                if (!is_color(ptr_color_for_replace,ptr,accuracy)) {
+                if (!((ptr[0] > ptr_color_for_replace[0] - accuracy && ptr[0] < ptr_color_for_replace[0] + accuracy) &&
+                      (ptr[1] > ptr_color_for_replace[1] - accuracy && ptr[1] < ptr_color_for_replace[1] + accuracy) &&
+                      (ptr[2] > ptr_color_for_replace[2] - accuracy && ptr[2] < ptr_color_for_replace[2] + accuracy))) {
                     count = search_count_of_color_in_image(image, ptr, size, y, accuracy, alpha);
                     if (count > max) {
                         max = count;
@@ -365,7 +441,9 @@ void find_color_and_replacing(struct Png *image, QColor color_for_swap) {
                 }
             } else if (size == 4 && ptr[3] > alpha) {
 
-                if (!is_color(ptr_color_for_replace,ptr,accuracy)) {
+                if (!(ptr[0] > ptr_color_for_replace[0] - accuracy && ptr[0] < ptr_color_for_replace[0] + accuracy &&
+                      (ptr[1] > ptr_color_for_replace[1] - accuracy && ptr[1] < ptr_color_for_replace[1] + accuracy) &&
+                      (ptr[2] > ptr_color_for_replace[2] - accuracy && ptr[2] < ptr_color_for_replace[2] + accuracy))) {
                     count = search_count_of_color_in_image(image, ptr, size, y, accuracy, alpha);
                     if (count > max) {
                         max = count;
@@ -379,14 +457,23 @@ void find_color_and_replacing(struct Png *image, QColor color_for_swap) {
         png_byte *row = image->row_pointers[y];
         for (int x = 0; x < image->width; x++) {
             png_byte *ptr = &(row[x * size]);
+            /*
+            if (ptr[0] == ptr_color_for_replace[0] && ptr[1] == ptr_color_for_replace[1] &&
+                ptr[2] == ptr_color_for_replace[2]) {
+                memcpy(ptr, ptr_color, sizeof(png_byte) * 3);
+            }*/
             if (size == 3) {
-                if (is_color(ptr_color_for_replace,ptr,accuracy)) {
+                if ((ptr[0] > ptr_color_for_replace[0] - accuracy && ptr[0] < ptr_color_for_replace[0] + accuracy &&
+                     (ptr[1] > ptr_color_for_replace[1] - accuracy && ptr[1] < ptr_color_for_replace[1] + accuracy) &&
+                     (ptr[2] > ptr_color_for_replace[2] - accuracy && ptr[2] < ptr_color_for_replace[2] + accuracy))) {
                     for (int i = 0; i < 3; ++i) {
                         ptr[i] = ptr_color[i];
                     }
                 }
             } else if (size == 4 && ptr[3] > alpha) {
-                if (is_color(ptr_color_for_replace,ptr,accuracy)) {
+                if ((ptr[0] > ptr_color_for_replace[0] - accuracy && ptr[0] < ptr_color_for_replace[0] + accuracy &&
+                     (ptr[1] > ptr_color_for_replace[1] - accuracy && ptr[1] < ptr_color_for_replace[1] + accuracy) &&
+                     (ptr[2] > ptr_color_for_replace[2] - accuracy && ptr[2] < ptr_color_for_replace[2] + accuracy))) {
                     for (int i = 0; i < 3; ++i) {
                         ptr[i] = ptr_color[i];
                     }
@@ -394,4 +481,80 @@ void find_color_and_replacing(struct Png *image, QColor color_for_swap) {
             }
         }
     }
+
+
 }
+
+void negativ(struct Png *image){
+     int size=0;
+    if (png_get_color_type(image->png_ptr, image->info_ptr) == PNG_COLOR_TYPE_RGB) {
+        size = 3;
+    }
+
+    if (png_get_color_type(image->png_ptr, image->info_ptr) == PNG_COLOR_TYPE_RGBA) {
+        size = 4;
+    }
+    for (int y = 0; y < image->height; ++y) {
+        png_byte *row = image->row_pointers[y];
+        for (int x = 0; x < image->width; x++) {
+            png_byte *ptr = &(row[x * size]);
+            ptr[0]=255-ptr[0];
+            ptr[1]=255-ptr[1];
+            ptr[2]=255-ptr[2];
+
+
+        }
+
+
+}
+}
+
+
+void chbe(struct Png *image, double brightness){
+    int size=0;
+    if (png_get_color_type(image->png_ptr, image->info_ptr) == PNG_COLOR_TYPE_RGB) {
+        size = 3;
+    }
+
+    if (png_get_color_type(image->png_ptr, image->info_ptr) == PNG_COLOR_TYPE_RGBA) {
+        size = 4;
+    }
+
+    int  separator = 255 / brightness / 2 * 3;
+   int total =0;
+   for (int y = 0; y < image->height; ++y) {
+       png_byte *row = image->row_pointers[y];
+       for (int x = 0; x < image->width; x++) {
+           png_byte *ptr = &(row[x * size]);
+           total = (int)ptr[0]+(int)ptr[1]+(int)ptr[2];
+           if(total > separator){
+                ptr[0]=255;
+                ptr[1]=255;
+                ptr[2]=255;
+           }else{
+               ptr[0]=0;
+               ptr[1]=0;
+               ptr[2]=0;
+           }
+       }
+   }
+}
+
+/*
+int main(int argc, char **argv) {
+    if (argc != 3) {
+        fprintf(stderr, "Usage: program_name <file_in> <file_out>\n");
+        return 0;
+    }
+
+    struct Png image;
+    read_png_file(argv[1], &image);
+    make_square(&image, 200, 200, 200, 50, GREEN, false, YELLOW);
+
+    swap(&image, 200, 200, 500, 500, DIAGONAL);
+    find_color_and_replacing(&image, BLUE);
+    write_png_file(argv[2], &image);
+
+    return 0;
+}
+*/
